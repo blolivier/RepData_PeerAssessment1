@@ -1,13 +1,6 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 
 ## Course project 1
 
@@ -17,8 +10,8 @@ This project will look at answering some questions arising from the "Activity mo
 
 ### Loading and preprocessing the data
 Firstly the data has to be imported into R. A seperate dataset will be created which contains no missing values
-```{r echo = TRUE}
 
+```r
 # 01 Load the data
 all_data = read.csv(unz("activity.zip", "activity.csv"))
 
@@ -29,7 +22,8 @@ data_nomiss = subset(all_data, steps != 'NA')
 ### What is mean total number of steps taken per day? 
 Now the dataset with no missing values will be used.
 
-```{r echo=TRUE}
+
+```r
 # 01 Calculate the total number of steps taken per day
 steps_per_day = sqldf::sqldf("
     select
@@ -40,12 +34,26 @@ steps_per_day = sqldf::sqldf("
     group by
         date
 ")
+```
 
+```
+## Loading required package: DBI
+```
+
+```
+## Loading required package: tcltk
+```
+
+```r
 # 02 Make a histogram of the total number of steps taken each day
 hist(steps_per_day$total_steps
      ,main = "Histogram of steps taken per day"
      ,xlab = "Steps per day")
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+
+```r
 # 03 Calculate and report the mean and median of the total number of steps taken per day
 nomiss_daily_mean = mean(steps_per_day$total_steps)
 nomiss_daily_median = median(steps_per_day$total_steps)
@@ -55,14 +63,14 @@ The following table gives the mean and median of steps taken per day:
 
 Measurement|Value (steps taken per day)|
 -----------|---------------------------|
-Mean       |`r nomiss_daily_mean`
-Median     |`r nomiss_daily_median`
+Mean       |1.0766189\times 10^{4}
+Median     |10765
 
 
 ### What is the average daily activity pattern?
 
-```{r echo=TRUE}
 
+```r
 # 01 Make a time series plot...
 avg_steps_per_interval = sqldf::sqldf("
     select
@@ -80,27 +88,31 @@ plot(avg_steps_per_interval$interval
      ,main = "Average number of steps taken per inverval"
      ,xlab = "Daily interval"
      ,ylab = "Average steps")
-
-# 02 Which 5-minute interval, ... , contains the maximum number of steps?
-max_steps = subset(avg_steps_per_interval, avg_steps == max(avg_steps))
-
 ```
 
-The 5 minute interval which contain the most steps, is interval **`r max_steps$interval`** with a total of **`r round(max_steps$avg_steps,0)`** average steps.
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
+```r
+# 02 Which 5-minute interval, ... , contains the maximum number of steps?
+max_steps = subset(avg_steps_per_interval, avg_steps == max(avg_steps))
+```
+
+The 5 minute interval which contain the most steps, is interval **835** with a total of **206** average steps.
 
 
 ### Imputing missing values
 Up to now missing values have been excluded. Since missing days' data can introduce bias in the analysis, these values will be replace/imputed with other values.
 
-```{r echo=TRUE}
 
+```r
 # 01 Calculate and report the total number of missing values
 data_miss = nrow(all_data[is.na(all_data$steps),])
 ```
 
-There are **`r data_miss`** missing values in the dataset. The interval mean will be used to replace these values as this is a reasonable replacement.
+There are **2304** missing values in the dataset. The interval mean will be used to replace these values as this is a reasonable replacement.
 
-```{r echo=TRUE}
+
+```r
 # 03 Create a new dataset that is equal to the original dataset but with the missing data filled in
 new_data = sqldf::sqldf("
     select a.*
@@ -130,18 +142,21 @@ steps_per_day_new = sqldf::sqldf("
 hist(steps_per_day_new$total_steps
      ,main = "Histogram of steps taken per day (missing values imputed)"
      ,xlab = "Steps per day")
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
+```r
 all_daily_mean = mean(steps_per_day_new$total_steps)
 all_daily_median = median(steps_per_day_new$total_steps)
-
 ```
 
 Now compare the average steps taken per day between the dataset where missing values were excluded and the dataset where missing values were imputed.
 
 Measurement |Exclude missing values     |Missing values imputed
 ------------|---------------------------|-----------------------
-Mean        |`r nomiss_daily_mean`      |**`r all_daily_mean`**
-Median      |`r nomiss_daily_median`    |**`r all_daily_median`**
+Mean        |1.0766189\times 10^{4}      |**1.0766189\times 10^{4}**
+Median      |10765    |**1.0766189\times 10^{4}**
 
 There is not a signifficant difference between the values. This is mainly due to the fact that averages were used to replace missing values.
 
@@ -149,8 +164,8 @@ There is not a signifficant difference between the values. This is mainly due to
 ### Are there differences in activity patterns between weekdays and weekends?
 Here we are going to investigate whether there is a difference between weekdays and weekends when looking at the number of steps taken.
 
-```{r echo=TRUE}
 
+```r
 # 01 Create a new factor variable in the dataset with two levels - "weekday" and "weekend"
 new_data2 = dplyr::mutate(new_data, dow = weekdays(lubridate::ymd(date)))
 new_data3 = sqldf::sqldf("
@@ -186,9 +201,7 @@ ggplot2::ggplot(avg_steps_day_split, aes(interval, avg_new_steps)) +
     xlab("Interval") +
     ylab("Avg. number of steps") +
     ggtitle("Comparison of avg steps taken per interval over weekends and weekdays")
-                
-                
-
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
